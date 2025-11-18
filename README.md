@@ -30,8 +30,10 @@ sudo mv oSaint /usr/bin/
 ```
 
 # Usage
+```
 oSaint -p "subject"          : Passive Recon (Web summary + DDG)
 oSaint -a target.com          : Standard Active Recon
 oSaint -aS target.com         : Safe Mode (NO brute-force, NO nmap)
 oSaint -aR target.com         : Risky Mode (Full brute-force + nmap + whatweb)
 oSaint --help                 : Show the help menu
+```
