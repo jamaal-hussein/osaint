@@ -23,7 +23,7 @@ cat << "EOF"
 EOF
 
 echo -e "${PURPLE}────────────────────────────────────────${NC}"
-echo -e "${CYAN} oSaint - UNIX Open-source Intelligence Tool"
+echo -e "${CYAN}         oSaint - UNIX OSINT Tool"
 echo -e "${PURPLE}────────────────────────────────────────${NC}"
 
 # ===== Detect package manager =====
