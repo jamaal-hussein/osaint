@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##############################################
-# oSaint v4.0 — UNIVERSAL UNIX OSINT TOOL
+# oSaint — UNIX OSINT Tool
 ##############################################
 
 # ===== COLORS =====
@@ -23,7 +23,7 @@ cat << "EOF"
 EOF
 
 echo -e "${PURPLE}────────────────────────────────────────${NC}"
-echo -e "${CYAN}         oSaint - UNIX OSINT Tool"
+echo -e "${CYAN} oSaint - UNIX Open-source Intelligence Tool"
 echo -e "${PURPLE}────────────────────────────────────────${NC}"
 
 # ===== Detect package manager =====
@@ -37,29 +37,27 @@ detect_pm() {
     else PM="none"
     fi
 }
-
 detect_pm
 
 # ===== UNIVERSAL INSTALLER =====
 install_tool() {
-    TOOL=$1
-    GITURL=$2
-    FALLBACK=$3
+    TOOL="$1"
+    GITURL="$2"
+    FALLBACK="$3"
 
     echo -e "${YELLOW}[!] Installing missing tool: ${TOOL}${NC}"
 
-    # 1) Try package manager
     case "$PM" in
-        apt) sudo apt update && sudo apt install -y $TOOL && return ;;
-        pacman) sudo pacman -S --noconfirm $TOOL && return ;;
-        dnf) sudo dnf install -y $TOOL && return ;;
-        zypper) sudo zypper install -y $TOOL && return ;;
-        apk) sudo apk add $TOOL && return ;;
-        xbps) sudo xbps-install -Sy $TOOL && return ;;
+        apt) sudo apt update && sudo apt install -y "$TOOL" && return ;;
+        pacman) sudo pacman -S --noconfirm "$TOOL" && return ;;
+        dnf) sudo dnf install -y "$TOOL" && return ;;
+        zypper) sudo zypper install -y "$TOOL" && return ;;
+        apk) sudo apk add "$TOOL" && return ;;
+        xbps) sudo xbps-install -Sy "$TOOL" && return ;;
     esac
 
-    # 2) Try git clone
-    if [ ! -z "$GITURL" ]; then
+    # Git fallback
+    if [ -n "$GITURL" ]; then
         echo -e "${BLUE}[+] Cloning from GitHub...${NC}"
         git clone "$GITURL" "/tmp/$TOOL" 2>/dev/null
         if [ -f "/tmp/$TOOL/$FALLBACK" ]; then
@@ -69,33 +67,28 @@ install_tool() {
         fi
     fi
 
-    # 3) Final fallback — wget + compile
-    echo -e "${PURPLE}[+] Downloading source… trying manual compile${NC}"
-    wget "$FALLBACK" -O /tmp/$TOOL.tar.gz
-    cd /tmp
-    tar -xf $TOOL.tar.gz
-    cd $TOOL*
-    ./configure && make && sudo make install
+    echo -e "${RED}[x] Could not install $TOOL automatically.${NC}"
 }
 
-# ===== REQUIRE =====
+# ===== REQUIRE WRAPPER =====
 require() {
-    TOOL=$1
-    GIT=$2
-    FILE=$3
+    TOOL="$1"
+    GIT="$2"
+    FILE="$3"
     if ! command -v "$TOOL" >/dev/null; then
         install_tool "$TOOL" "$GIT" "$FILE"
     fi
 }
 
-# ===== PASSIVE MODE =====
+##############################################
+#                PASSIVE MODE
+##############################################
 passive() {
     QUERY="$1"
-    echo -e "${CYAN}[PASSIVE OSINT] Searching for: $QUERY ${NC}"
+    echo -e "${CYAN}[PASSIVE OSINT] Query: $QUERY ${NC}"
 
     require "curl"
     require "jq"
-    require "dig" "" ""
 
     echo -e "${BLUE}\n[WIKIPEDIA SUMMARY]${NC}"
     curl -s "https://en.wikipedia.org/api/rest_v1/page/summary/$QUERY" |
@@ -103,20 +96,58 @@ passive() {
 
     echo -e "${BLUE}\n[DUCKDUCKGO RESULTS]${NC}"
     curl -sG "https://api.duckduckgo.com" \
-        --data-urlencode "q=$QUERY" \
-        --data "format=json" |
+        --data-urlencode "q=$QUERY" --data "format=json" |
     jq -r '.RelatedTopics[].Text' 2>/dev/null | head -n 10
 }
 
-# ===== ACTIVE MODE =====
-active() {
+##############################################
+#           ACTIVE STANDARD MODE
+##############################################
+active_standard() {
     TARGET="$1"
-    echo -e "${YELLOW}[ACTIVE RECON] Target: $TARGET${NC}"
+    echo -e "${YELLOW}[ACTIVE - STANDARD] Target: $TARGET${NC}"
+
+    require "whois"
+    require "dig"
+    require "whatweb" "https://github.com/urbanadventurer/WhatWeb.git" "whatweb"
+
+    echo -e "${BLUE}\n[WHOIS]${NC}"
+    whois "$TARGET"
+
+    echo -e "${BLUE}\n[DNS INFO]${NC}"
+    dig "$TARGET" ANY +short
+
+    echo -e "${BLUE}\n[WHATWEB]${NC}"
+    whatweb "$TARGET"
+}
+
+##############################################
+#                ACTIVE SAFE MODE
+##############################################
+active_safe() {
+    TARGET="$1"
+    echo -e "${CYAN}[ACTIVE - SAFE] Target: $TARGET${NC}"
+
+    require "whois"
+    require "dig"
+    require "whatweb" "https://github.com/urbanadventurer/WhatWeb.git" "whatweb"
+
+    whois "$TARGET"
+    dig "$TARGET" ANY +short
+    whatweb "$TARGET"
+}
+
+##############################################
+#           ACTIVE RISKY MODE (FULL)
+##############################################
+active_risky() {
+    TARGET="$1"
+    echo -e "${RED}[ACTIVE - RISKY] Target: $TARGET${NC}"
 
     require "whois"
     require "dig"
     require "dnsenum" "https://github.com/fwaeytens/dnsenum.git" "dnsenum.pl"
-    require "nmap" "" "https://nmap.org/dist/nmap-7.95.tar.bz2"
+    require "nmap"
     require "whatweb" "https://github.com/urbanadventurer/WhatWeb.git" "whatweb"
 
     echo -e "${BLUE}\n[WHOIS]${NC}"
@@ -135,23 +166,29 @@ active() {
     sudo nmap -A "$TARGET"
 }
 
-# ===== UPDATED USAGE =====
-if [ "$1" = "-p" ]; then
-    passive "$2"
-elif [ "$1" = "-a" ] || [ "$1" = "-aR" ] || [ "$1" = "-aS" ]; then
-    active "$2"
-else
-    echo -e "${GREEN}Usage:"
-    echo "  oSaint -p \"subject\"          : Passive Recon (Web summary + DDG)"
-    echo "  oSaint -a target.com          : Standard Active Recon"
-    echo "  oSaint -aS target.com         : Safe Mode (NO brute-force, NO nmap)"
-    echo "  oSaint -aR target.com         : Risky Mode (Full brute-force + nmap + whatweb)"
-    echo "  oSaint --help                 : Show this help menu"
-    echo
-    echo "Examples:"
-    echo "  oSaint -p \"Battle of Karbala\""
-    echo "  oSaint -a sunnah.com"
-    echo "  oSaint -aR example.com"
-    exit
-fi
-
+##############################################
+#                 ARGUMENT PARSER
+##############################################
+case "$1" in
+    -p)
+        passive "$2"
+        ;;
+    -a)
+        active_standard "$2"
+        ;;
+    -aS)
+        active_safe "$2"
+        ;;
+    -aR)
+        active_risky "$2"
+        ;;
+    *)
+        echo -e "${GREEN}Usage:"
+        echo "  oSaint -p \"subject\"      : Passive OSINT"
+        echo "  oSaint -a target.com      : Standard Active OSINT"
+        echo "  oSaint -aS target.com     : Safe Mode (Low Noise)"
+        echo "  oSaint -aR target.com     : Risky Mode (Full Scan)"
+        echo
+        exit
+        ;;
+esac
