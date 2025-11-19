@@ -23,8 +23,8 @@ required tools are automatically installed via git clone, wget, or source builds
 
 # Installation
 ```
-git clone https://github.com/jamaal-hussein/osaint/oSaint
-cd oSaint
+git clone https://github.com/jamaal-hussein/osaint/
+cd osaint
 sudo chmod +x oSaint
 sudo mv oSaint /usr/bin/
 ```
