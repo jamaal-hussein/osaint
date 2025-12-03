@@ -8,7 +8,7 @@
 / _ \\__ \/ _` | | || ' \))|  _|  
 \___/|___/\__,_| |_||_||_|  \__|  
 ```
-oSaint is an OSINT tool that can do Passive and Active OSINT. It can be installed on UNIX systems. (eg. Linux, BSD, MacOS, etc.) 
+oSaint is an OSINT tool that can do Passive and Active OSINT. This tool was made on Linux Mint and was tested on Mint, so it is unconfirmed if it can run on any other Operating System. If it can, it will only work on UNIX systems.
 
 # Features
 • WHOIS Lookup  
