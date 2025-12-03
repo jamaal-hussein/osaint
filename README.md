@@ -30,6 +30,11 @@ cd ~
 oSaint
 ```
 
+# Uninstallation
+```
+sudo rm -rf /usr/bin/oSaint
+```
+
 # Usage
 ```
 oSaint [target.com]
