@@ -29,5 +29,5 @@ sudo mv oSaint /usr/bin/
 
 # Usage
 ```
-oSaint target.com       : Active Recon
+oSaint [target.com]
 ```
