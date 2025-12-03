@@ -8,7 +8,7 @@
 / _ \\__ \/ _` | | || ' \))|  _|  
 \___/|___/\__,_| |_||_||_|  \__|  
 ```
-oSaint is an OSINT tool that can do Passive and Active OSINT. This tool was made on Linux Mint and was tested on Mint, so it is unconfirmed if it can run on any other Operating System. If it can, it will only work on UNIX systems.
+oSaint is a tool for Active OSINT (Open-Source Intelligence). It was made and tested on Linux.
 
 # Features
 • WHOIS Lookup  
@@ -29,9 +29,5 @@ sudo mv oSaint /usr/bin/
 
 # Usage
 ```
-oSaint -p "subject"          : Passive Recon (Web summary + DDG)
-oSaint -a target.com          : Standard Active Recon
-oSaint -aS target.com         : Safe Mode (NO brute-force, NO nmap)
-oSaint -aR target.com         : Risky Mode (Full brute-force + nmap + whatweb)
-oSaint --help                 : Show the help menu
+oSaint target.com       : Active Recon
 ```
