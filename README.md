@@ -25,6 +25,7 @@ git clone https://github.com/jamaal-hussein/osaint/
 cd osaint
 sudo chmod +x oSaint
 sudo mv oSaint /usr/bin/
+sudo rm -rf ~/osaint
 ```
 
 # Usage
