@@ -81,68 +81,11 @@ require() {
 }
 
 ##############################################
-#                PASSIVE MODE
-##############################################
-passive() {
-    QUERY="$1"
-    echo -e "${CYAN}[PASSIVE OSINT] Query: $QUERY ${NC}"
-
-    require "curl"
-    require "jq"
-
-    echo -e "${BLUE}\n[WIKIPEDIA SUMMARY]${NC}"
-    curl -s "https://en.wikipedia.org/api/rest_v1/page/summary/$QUERY" |
-    jq -r '.extract // "No summary found."'
-
-    echo -e "${BLUE}\n[DUCKDUCKGO RESULTS]${NC}"
-    curl -sG "https://api.duckduckgo.com" \
-        --data-urlencode "q=$QUERY" --data "format=json" |
-    jq -r '.RelatedTopics[].Text' 2>/dev/null | head -n 10
-}
-
-##############################################
-#           ACTIVE STANDARD MODE
-##############################################
-active_standard() {
-    TARGET="$1"
-    echo -e "${YELLOW}[ACTIVE - STANDARD] Target: $TARGET${NC}"
-
-    require "whois"
-    require "dig"
-    require "whatweb" "https://github.com/urbanadventurer/WhatWeb.git" "whatweb"
-
-    echo -e "${BLUE}\n[WHOIS]${NC}"
-    whois "$TARGET"
-
-    echo -e "${BLUE}\n[DNS INFO]${NC}"
-    dig "$TARGET" ANY +short
-
-    echo -e "${BLUE}\n[WHATWEB]${NC}"
-    whatweb "$TARGET"
-}
-
-##############################################
-#                ACTIVE SAFE MODE
-##############################################
-active_safe() {
-    TARGET="$1"
-    echo -e "${CYAN}[ACTIVE - SAFE] Target: $TARGET${NC}"
-
-    require "whois"
-    require "dig"
-    require "whatweb" "https://github.com/urbanadventurer/WhatWeb.git" "whatweb"
-
-    whois "$TARGET"
-    dig "$TARGET" ANY +short
-    whatweb "$TARGET"
-}
-
-##############################################
-#           ACTIVE RISKY MODE (FULL)
+#     DEFAULT MODE (Always RISKY MODE)
 ##############################################
 active_risky() {
     TARGET="$1"
-    echo -e "${RED}[ACTIVE - RISKY] Target: $TARGET${NC}"
+    echo -e "${RED}[ACTIVE - FULL SCAN] Target: $TARGET${NC}"
 
     require "whois"
     require "dig"
@@ -162,33 +105,18 @@ active_risky() {
     echo -e "${BLUE}\n[WHATWEB]${NC}"
     whatweb "$TARGET"
 
-    echo -e "${BLUE}\n[NMAP AGGRESSIVE]${NC}"
+    echo -e "${BLUE}\n[NMAP -A]${NC}"
     sudo nmap -A "$TARGET"
 }
 
 ##############################################
-#                 ARGUMENT PARSER
+#                 ARG PARSER
 ##############################################
-case "$1" in
-    -p)
-        passive "$2"
-        ;;
-    -a)
-        active_standard "$2"
-        ;;
-    -aS)
-        active_safe "$2"
-        ;;
-    -aR)
-        active_risky "$2"
-        ;;
-    *)
-        echo -e "${GREEN}Usage:"
-        echo "  oSaint -p \"subject\"      : Passive OSINT"
-        echo "  oSaint -a target.com      : Standard Active OSINT"
-        echo "  oSaint -aS target.com     : Safe Mode (Low Noise)"
-        echo "  oSaint -aR target.com     : Risky Mode (Full Scan)"
-        echo
-        exit
-        ;;
-esac
+if [ -z "$1" ]; then
+    echo -e "${GREEN}Usage:"
+    echo "  oSaint [target.com]"
+    echo
+    exit
+fi
+
+active_risky "$1"
